@@ -225,6 +225,13 @@ Solana network is slow. Delete `.lut-cache.json` and try again.
 **Balance check fails**
 Fund your wallets with enough SOL. Each buyer needs their buy amount + ~0.02 SOL for fees. The creator wallet needs extra for token creation + Jito tip.
 
+## Contact
+
+Built by **Laint**. For questions, feedback, or issues:
+
+- **Twitter/X:** [@LaintDev](https://x.com/LaintDev)
+- **GitHub Issues:** Open an issue on this repo
+
 ## Disclaimer
 
 This tool is provided for educational and research purposes. Use at your own risk and always comply with applicable laws and platform terms of service.
