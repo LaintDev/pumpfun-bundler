@@ -1,0 +1,7 @@
+node_modules/
+.env
+.mint-cache.json
+.lut-cache.json
+jito-auth-keypair.json
+pumpfun-IDL.json
+package-lock.json
