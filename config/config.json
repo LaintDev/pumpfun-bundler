@@ -1,24 +1,28 @@
 {
+  "bot": {
+    "token": "INSERT_YOUR_BOT_TOKEN_HERE",
+    "ownerIds": ["INSERT_YOUR_TELEGRAM_ID_HERE"]
+  },
   "token": {
-    "name": "My Token",
-    "symbol": "MTK",
-    "description": "My awesome token",
-    "imageUrl": "https://example.com/image.png",
+    "name": "",
+    "symbol": "",
+    "description": "",
+    "imageUrl": "",
     "twitter": "",
     "telegram": "",
     "website": ""
   },
   "rpc": {
-    "helius": "https://mainnet.helius-rpc.com/?api-key=YOUR_HELIUS_API_KEY",
+    "helius": "https://mainnet.helius-rpc.com/?api-key=INSERT_YOUR_HELIUS_API_KEY",
     "devnet": "https://api.devnet.solana.com"
   },
   "jito": {
-    "tipAmount": 0.01
+    "tipAmount": 0.002
   },
   "buy": {
-    "walletCount": 4,
-    "creatorAmount": 1.0,
-    "amountPerWallet": [0.5, 0.5, 0.5, 0.5]
+    "walletCount": 0,
+    "creatorAmount": 0,
+    "amountPerWallet": []
   },
   "mode": "mainnet"
 }

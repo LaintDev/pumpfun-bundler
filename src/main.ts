@@ -25,7 +25,7 @@ async function main() {
   console.log('  Buyers: ' + wallets.buyers.length + ' wallets');
 
   // ── Check balances ─────────────────────────────────────────────────────────
-  const balancesOk = await checkBalances(connection, wallets, config.buy.amountPerWallet);
+  const balancesOk = await checkBalances(connection, wallets, config.buy.amountPerWallet, config.buy.creatorAmount, config.jito.tipAmount);
   if (!balancesOk) {
     console.log('\n  Fund your wallets first!');
     process.exit(1);

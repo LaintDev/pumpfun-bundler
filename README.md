@@ -1,69 +1,103 @@
-# Laint Pumpfun Bundler v1.0 (2026)
+# Laint Pumpfun Bundler v2.0 (2026)
 
 Launch tokens on [pump.fun](https://pump.fun) with bundled buyer wallets via Jito. All transactions land atomically in the same block — your token creation and all buyer purchases happen simultaneously, appearing as independent wallets on-chain.
+
+**New in v2.0:** Full Telegram Bot UI — configure, manage wallets, and launch tokens from your phone. No more editing config files.
 
 Working as of March 2026 with the latest pump.fun contracts, fee structure, and Jito bundle engine.
 
 ## Features
 
-- **Atomic Jito bundle** — Token creation + all buys land in one block. No one can buy between your transactions.
-- **Up to 8 buyer wallets** — Automatically split across 2 transactions (4 buyers each) to stay within Solana's transaction size limits.
-- **Creator-only mode** — Set 0 buyers for a clean creator launch with no bundled buys.
-- **TX1 simulation** — Validates your transaction locally before sending the bundle. If something is wrong (bad accounts, insufficient SOL), it catches the error instantly instead of wasting your Jito tip.
-- **Live fee patching** — Reads pump.fun's fee recipient directly from the blockchain. Other bundlers hardcode this and break when pump.fun updates it.
-- **LUT caching** — The Address Lookup Table is cached between runs. If a bundle doesn't land, your retry is faster because it skips LUT creation.
-- **Auto retry** — If a bundle doesn't land (Jito congestion), run the command again. The mint address is preserved so you get the same token CA.
-- **Multi-endpoint** — Sends to all 5 Jito block engines simultaneously (mainnet, Amsterdam, Frankfurt, New York, Tokyo). First one to accept wins.
+- **Telegram Bot Dashboard** — Manage everything from Telegram: token setup, wallet management, bundle config, one-tap launch
+- **Atomic Jito bundle** — Token creation + all buys land in one block
+- **Up to 8 buyer wallets** — Automatically split across transactions to stay within Solana limits
+- **Creator-only mode** — Set 0 buyers for a clean creator launch
+- **TX1 simulation** — Validates locally before sending, catches errors before wasting your Jito tip
+- **Live fee patching** — Reads pump.fun's fee recipient from chain. Never breaks when pump.fun updates
+- **LUT caching** — Retry is instant, skips LUT creation on second attempt
+- **Auto retry** — Mint address preserved between runs, same CA on retry
+- **Multi-endpoint** — Sends to all 5 Jito block engines simultaneously
 
-## How It Works
+## Quick Start
 
-The bundler sends a Jito bundle containing up to 3 transactions:
-
-| Transaction | Contents | When |
-|---|---|---|
-| **TX1** | Create token + creator buy | Always |
-| **TX2** | Buyer wallets 1-4 | If you have 1+ buyers |
-| **TX3** | Buyer wallets 5-8 + Jito tip | If you have 5+ buyers |
-
-The Jito tip is always attached to the last transaction in the bundle. All transactions are signed by the creator wallet and land atomically — either all succeed or none do.
-
-## Requirements
-
-- **Node.js** v18 or higher — [Download here](https://nodejs.org)
-- A **Helius RPC endpoint** — [Get a free one here](https://helius.dev) (free tier works fine)
-- **SOL** in all wallets — enough to cover buy amounts + ~0.02 SOL per wallet for fees
-
-## Setup (Step by Step)
-
-### 1. Clone the repository
-
-Open a terminal (Command Prompt on Windows, Terminal on Mac) and run:
+### 1. Clone & install
 
 ```bash
 git clone https://github.com/LaintDev/pumpfun-bundler.git
 cd pumpfun-bundler
-```
-
-If you don't have Git installed, you can also click the green "Code" button on GitHub and select "Download ZIP". Extract it and open a terminal in that folder.
-
-### 2. Install dependencies
-
-```bash
 npm install
 ```
 
-This downloads all required packages. You'll see a "BigInt Failed To Load Bindings" warning — this is normal and doesn't affect anything.
+### 2. Get a Helius RPC key
 
-### 3. Get a Helius RPC endpoint
+Go to [helius.dev](https://helius.dev), create a free account, and copy your RPC URL.
 
-Go to [helius.dev](https://helius.dev), create a free account, and copy your RPC URL. It looks like:
+### 3. Configure `config/config.json`
+
+```json
+{
+  "bot": {
+    "token": "YOUR_BOT_TOKEN_FROM_BOTFATHER",
+    "ownerIds": ["YOUR_TELEGRAM_USER_ID"]
+  },
+  "rpc": {
+    "helius": "https://mainnet.helius-rpc.com/?api-key=YOUR_HELIUS_API_KEY"
+  }
+}
 ```
-https://mainnet.helius-rpc.com/?api-key=your-api-key-here
+
+### 4. Choose your interface
+
+**Option A: Telegram Bot (recommended)**
+```bash
+npm run bot
+```
+Then open Telegram and send `/start` to your bot. Everything else is done through the UI.
+
+**Option B: CLI**
+Edit `config/config.json` and `config/wallets.json` manually, then:
+```bash
+npm start
 ```
 
-### 4. Configure your token
+---
 
-Edit `config/config.json` with any text editor (Notepad, VS Code, etc.):
+## Telegram Bot
+
+### Setup
+
+1. Message [@BotFather](https://t.me/BotFather) on Telegram → `/newbot` → copy the token
+2. Message [@userinfobot](https://t.me/userinfobot) → copy your user ID
+3. Paste both into `config/config.json` under `bot.token` and `bot.ownerIds`
+4. `npm run bot`
+5. Send `/start` to your bot
+
+> Multiple users? `"ownerIds": ["123456789", "987654321"]`
+
+### What you can do
+
+| Button | What it does |
+|---|---|
+| **🚀 Launch** | Confirm and send the Jito bundle |
+| **🆕 New** | Step-by-step wizard to configure a new token |
+| **📦 Token** | Edit name, symbol, description, image, socials |
+| **⚡ Bundle** | Edit creator buy, Jito tip, buyer count, individual buyer amounts |
+| **👛 Wallets** | Generate, import, remove wallets — shows live SOL balances |
+| **🔄 Refresh** | Reload dashboard with fresh balance data |
+
+- Launch button shows ⚠️ when config is incomplete — tap it to see what's missing
+- Wizard saves progress after each step — cancel anytime with `/start`
+- Config auto-resets after successful launch, ready for the next token
+
+---
+
+## CLI Usage
+
+If you prefer the command line over Telegram:
+
+### Configure your token
+
+Edit `config/config.json`:
 
 ```json
 {
@@ -75,10 +109,6 @@ Edit `config/config.json` with any text editor (Notepad, VS Code, etc.):
     "twitter": "",
     "telegram": "",
     "website": ""
-  },
-  "rpc": {
-    "helius": "https://mainnet.helius-rpc.com/?api-key=YOUR_HELIUS_API_KEY",
-    "devnet": "https://api.devnet.solana.com"
   },
   "jito": {
     "tipAmount": 0.01
@@ -92,12 +122,7 @@ Edit `config/config.json` with any text editor (Notepad, VS Code, etc.):
 }
 ```
 
-**Important notes:**
-- `imageUrl` must be a publicly accessible URL (not a local file path)
-- `walletCount` must match the number of entries in `amountPerWallet`
-- Set `mode` to `"devnet"` if you want to test without real SOL first
-
-### 5. Add your wallets
+### Add your wallets
 
 Edit `config/wallets.json`:
 
@@ -106,65 +131,59 @@ Edit `config/wallets.json`:
   "creatorWallet": "YOUR_CREATOR_PRIVATE_KEY_BASE58",
   "buyerWallets": [
     "BUYER_1_PRIVATE_KEY",
-    "BUYER_2_PRIVATE_KEY",
-    "BUYER_3_PRIVATE_KEY",
-    "BUYER_4_PRIVATE_KEY"
+    "BUYER_2_PRIVATE_KEY"
   ]
 }
 ```
 
-**How to get your private key:** In Phantom wallet, click Settings > Security > Export Private Key. Copy the base58 string (it looks like a long random string of letters and numbers).
-
-**Never share your private keys with anyone. Never commit them to a public repository.**
-
-### 6. Fund your wallets
-
-Send SOL to each wallet address. Every wallet needs enough SOL to cover:
-- Its buy amount (from `amountPerWallet`)
-- ~0.02 SOL for transaction fees
-
-The creator wallet needs extra SOL for token creation fees and the Jito tip.
-
-You can check all wallet balances by running:
-```bash
-npm start
-```
-It will show each wallet's balance before attempting to launch.
-
-## Launch
+### Launch
 
 ```bash
 npm start
 ```
 
-The bundler will:
-1. Load your config and wallets
-2. Check all balances
-3. Upload token metadata to IPFS
-4. Create the Address Lookup Table (first run only)
-5. Build and simulate the transactions
-6. Send the bundle to Jito
-7. Wait for it to land on-chain
-8. Print your pump.fun link
+If the bundle doesn't land, run `npm start` again — the mint address is cached for retry.
 
-**If the bundle doesn't land** (you'll see "Bundle failed" or Jito rate limit errors), just run `npm start` again. The mint address is cached, so it will retry with the same token CA.
+To start fresh with a new mint, delete `.mint-cache.json`.
 
-**To start fresh** with a new mint address, delete the `.mint-cache.json` file in the project root.
-
-## Generate New Wallets
+### Generate wallets
 
 ```bash
 npm run generate-wallet
 ```
 
-Prints a fresh keypair (public key + private key) to the console. Save the private key somewhere safe.
+---
+
+## How It Works
+
+The bundler sends a Jito bundle containing up to 3 transactions:
+
+| Transaction | Contents | When |
+|---|---|---|
+| **TX1** | Create token + creator buy | Always |
+| **TX2** | Buyer wallets 1-4 | If 1+ buyers |
+| **TX3** | Buyer wallets 5-8 + Jito tip | If 5+ buyers |
+
+The Jito tip is attached to the last transaction. All transactions land atomically — either all succeed or none do.
+
+---
+
+## Requirements
+
+- **Node.js** v18+ — [nodejs.org](https://nodejs.org)
+- **Helius RPC** — [helius.dev](https://helius.dev) (free tier works)
+- **SOL** in wallets — buy amounts + ~0.02 SOL per wallet for fees
+
+---
 
 ## Config Reference
 
 | Field | Description | Example |
 |---|---|---|
+| `bot.token` | Telegram bot token from BotFather | `"123:ABC..."` |
+| `bot.ownerIds` | Telegram user IDs with access | `["123456789"]` |
 | `token.name` | Token name on pump.fun | `"My Token"` |
-| `token.symbol` | Token ticker symbol | `"MTK"` |
+| `token.symbol` | Token ticker | `"MTK"` |
 | `token.description` | Short description | `"My awesome token"` |
 | `token.imageUrl` | Public URL to token image | `"https://..."` |
 | `token.twitter` | Twitter/X link (optional) | `"https://x.com/..."` |
@@ -173,65 +192,68 @@ Prints a fresh keypair (public key + private key) to the console. Save the priva
 | `rpc.helius` | Your Helius RPC URL | `"https://mainnet.helius-rpc.com/?api-key=..."` |
 | `jito.tipAmount` | Jito tip in SOL | `0.01` |
 | `buy.walletCount` | Number of buyer wallets (0-8) | `4` |
-| `buy.creatorAmount` | Creator buy amount in SOL | `1.0` |
-| `buy.amountPerWallet` | Array of SOL amounts per buyer | `[0.5, 0.5, 0.5, 0.5]` |
-| `mode` | `"mainnet"` or `"devnet"` | `"mainnet"` |
+| `buy.creatorAmount` | Creator buy in SOL | `1.0` |
+| `buy.amountPerWallet` | SOL per buyer | `[0.5, 0.5, 0.5, 0.5]` |
+| `mode` | Network | `"mainnet"` or `"devnet"` |
+
+---
 
 ## Tips
 
-- **Jito tip:** 0.01 SOL works most of the time. During high network congestion, increase to 0.03-0.05 SOL for faster landing.
-- **Varied buy amounts:** Use slightly different amounts per wallet (e.g. 0.48, 0.52, 0.50, 0.53) instead of identical amounts. Looks more natural on-chain.
-- **Retry behavior:** The mint keypair is saved in `.mint-cache.json`. Delete this file to generate a new token address on the next run.
-- **LUT cache:** Stored in `.lut-cache.json`. Automatically invalidates when you change wallets or mint address. Delete it manually if you run into LUT-related errors.
-- **Image hosting:** Use a reliable image host. If the image URL goes down after launch, your token will show no image on pump.fun.
+- **Jito tip:** 0.01 SOL usually lands. During congestion, try 0.03-0.05 SOL
+- **Varied buy amounts:** Use slightly different amounts per wallet (0.48, 0.52, 0.50) — looks more natural on-chain
+- **Retry:** Mint is cached in `.mint-cache.json` — delete to get a new token address
+- **LUT cache:** Stored in `.lut-cache.json` — delete if you get LUT errors
+
+---
 
 ## Project Structure
 
 ```
 pumpfun-bundler/
   config/
-    config.json        — Token details, RPC endpoint, buy amounts
-    wallets.json       — Creator + buyer wallet private keys
+    config.json          — All settings: bot, token, RPC, buy amounts
+    wallets.json         — Creator + buyer private keys
   src/
-    main.ts            — Entry point, builds TXs, sends bundle
-    config.ts          — Config file loader and validation
-    wallets.ts         — Wallet loading and balance checking
-    pumpfun.ts         — Pump.fun create + buy instruction builder
-    jito.ts            — Jito bundle sending with simulation
-    lut.ts             — Address Lookup Table setup and caching
-    metadata.ts        — Token metadata + image upload to IPFS
-  .gitignore           — Keeps private files out of Git
-  package.json         — Project dependencies and scripts
-  tsconfig.json        — TypeScript configuration
+    main.ts              — CLI entry point
+    config.ts            — Config loader
+    wallets.ts           — Wallet loading + balance checks
+    pumpfun.ts           — Pump.fun instruction builder
+    jito.ts              — Jito bundle sender + simulation
+    lut.ts               — Address Lookup Table caching
+    metadata.ts          — IPFS metadata upload
+    bot/
+      index.ts           — Bot setup + routing
+      helpers.ts         — Config I/O, launch checks
+      menu.ts            — Dashboard with live balances
+      token-config.ts    — Token + bundle config, New wizard
+      wallets-ui.ts      — Wallet management UI
+      launcher.ts        — Bundle execution + progress
+      balances.ts        — Balance display
+      types.ts           — TypeScript types
 ```
+
+---
 
 ## Troubleshooting
 
-**"BigInt Failed To Load Bindings"**
-Normal warning, ignore it. Everything works fine.
+| Error | Fix |
+|---|---|
+| BigInt Failed To Load Bindings | Normal warning, ignore it |
+| Bundle failed on all endpoints | Jito congested — retry with `npm start` |
+| TX1 simulation failed | Check SOL balance, wallet keys, RPC |
+| LUT did not activate | Delete `.lut-cache.json`, retry |
+| Bot: "Set bot.token in config" | Add your BotFather token to config.json |
 
-**"Bundle failed on all Jito endpoints"**
-Jito is congested. Wait a few seconds and run `npm start` again. Your mint is cached so it retries cleanly.
-
-**"TX1 simulation failed"**
-Something is wrong with your transaction. Common causes:
-- Insufficient SOL in creator wallet
-- Invalid wallet private key
-- RPC endpoint is down or rate limited
-
-**"LUT did not activate within 15s"**
-Solana network is slow. Delete `.lut-cache.json` and try again.
-
-**Balance check fails**
-Fund your wallets with enough SOL. Each buyer needs their buy amount + ~0.02 SOL for fees. The creator wallet needs extra for token creation + Jito tip.
+---
 
 ## Contact
 
-Built by **Laint**. For questions, feedback, or issues:
+Built by **Laint**
 
-- **Twitter/X:** [@LaintDev](https://x.com/LaintDev)
+- **𝕏:** [@LaintDev](https://x.com/LaintDev)
 - **GitHub Issues:** Open an issue on this repo
 
-## Disclaimer
+---
 
-This tool is provided for educational and research purposes. Use at your own risk and always comply with applicable laws and platform terms of service.
+*This tool is provided for educational and research purposes. Use at your own risk.*

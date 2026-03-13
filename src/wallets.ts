@@ -38,7 +38,9 @@ export function loadKeypairs(walletConfig: WalletConfig): LoadedWallets {
 export async function checkBalances(
   connection: Connection,
   wallets: LoadedWallets,
-  amountsPerWallet: number[]
+  amountsPerWallet: number[],
+  creatorBuyAmount: number = 0,
+  jitoTip: number = 0
 ): Promise<boolean> {
   console.log('\n💰 Checking wallet balances...');
   let allGood = true;
@@ -47,10 +49,13 @@ export async function checkBalances(
   const allKeys = [wallets.creator.publicKey, ...wallets.buyers.map(b => b.publicKey)];
   const balances = await Promise.all(allKeys.map(k => connection.getBalance(k)));
 
+  // Creator needs: creation fees (~0.012) + creator buy + jito tip + ATA costs
+  const ataCount = 1 + wallets.buyers.length;
+  const creatorRequired = 0.012 + (ataCount * 0.002) + creatorBuyAmount + jitoTip + 0.004;
   const creatorSOL = balances[0]! / LAMPORTS_PER_SOL;
-  console.log(`   Creator: ${creatorSOL.toFixed(4)} SOL`);
-  if (creatorSOL < 0.05) {
-    console.log(`   ❌ Creator wallet needs at least 0.05 SOL for token creation!`);
+  console.log(`   Creator: ${creatorSOL.toFixed(4)} SOL (needs ~${creatorRequired.toFixed(4)} SOL)`);
+  if (creatorSOL < creatorRequired) {
+    console.log(`   ❌ Creator wallet needs at least ${creatorRequired.toFixed(4)} SOL!`);
     allGood = false;
   }
 
